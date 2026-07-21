@@ -1,0 +1,41 @@
+MIT License
+
+Copyright (c) 2026 Lorenzo DiFrancesco
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+ADDITIONAL NOTICES
+
+Medical disclaimer. This software is a clinical reference calculator, not a
+medical device. It is not FDA-cleared, not intended for diagnostic use, and
+does not provide medical advice or clinical decisions. Any use in patient
+care is at the sole discretion and professional responsibility of a licensed
+clinician. The threshold summaries and interpretation bands displayed are
+informational digests of the peer-reviewed literature cited in the
+application and are not treatment recommendations.
+
+AM-PAC "6-Clicks" instrument. The Activity Measure for Post-Acute Care
+"6-Clicks" instrument is separately licensed by Boston University and
+distributed by Pearson Assessments. The MIT license above covers only the
+source code, styling, layout, threshold-interpretation logic, and
+documentation in this repository. It does not grant any rights in the
+underlying AM-PAC instrument. Institutional deployment should verify current
+licensing terms with the rights holder.
