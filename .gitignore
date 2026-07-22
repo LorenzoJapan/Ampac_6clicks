@@ -1,0 +1,146 @@
+# ==============================================================
+# AM-PAC "6-Clicks" Calculator — .gitignore
+# ==============================================================
+
+# ----- Patient data safety net -----
+# The app itself stores nothing to disk, but block anything that
+# looks like exported PHI from being committed by accident.
+*.phi
+*.phi.*
+patient_data/
+exports/
+scores_export_*.csv
+scores_export_*.json
+scores_export_*.txt
+
+# ----- OS files -----
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.AppleDouble
+.LSOverride
+
+# ----- Editors / IDEs -----
+.vscode/
+.idea/
+.claude/settings.local.json
+*.iml
+*.sublime-project
+*.sublime-workspace
+.project
+.settings/
+.classpath
+*.swp
+*.swo
+*.swn
+*~
+.\#*
+\#*\#
+.netrwhist
+.vim/
+.nvim/
+.emacs.d/
+Session.vim
+
+# ----- macOS specific -----
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# ----- Windows specific -----
+*.lnk
+*.stackdump
+
+# ----- Backup / temp files -----
+*.bak
+*.backup
+*.tmp
+*.temp
+*.old
+*.orig
+*.rej
+*.log
+*.pid
+*.seed
+
+# ----- Node (if tooling added later) -----
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+.yarn/
+.pnp.*
+package-lock.json.bak
+
+# ----- Python (if analysis scripts added) -----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+.env
+.env.local
+.env.*.local
+pip-log.txt
+pip-delete-this-directory.txt
+.ipynb_checkpoints/
+
+# ----- Build outputs -----
+dist/
+build/
+out/
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.svelte-kit/
+
+# ----- Test / coverage -----
+coverage/
+.nyc_output/
+*.lcov
+.pytest_cache/
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+
+# ----- Local server artifacts -----
+.serverless/
+.vercel/
+.netlify/
+
+# ----- Local config / secrets -----
+.env
+.env.*
+!.env.example
+secrets.json
+credentials.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# ----- Do NOT ignore ----------------------------------------
+# Keep these tracked even if they match a broader pattern.
+!index.html
+!ampac_6clicks.md
+!README.md
+!LICENSE
+!.gitignore
+!docs/**/*.png
+!docs/**/*.jpg
+!docs/**/*.svg
