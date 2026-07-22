@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AM-PAC "6-Clicks" Calculator</title>
+<style>
+:root{
+  --ink:#16283B;--ink-soft:#4A5D72;--paper:#F7F9FB;--card:#FFFFFF;--line:#DCE4EC;
+  --teal:#0E7C7B;--teal-dk:#0A5A59;
+  --s1:#B23A2E;--s2:#C97E1C;--s3:#2E7DB2;--s4:#2E8B57;
+  --s1-bg:#F9E9E7;--s2-bg:#FBF1E0;--s3-bg:#E7F1F8;--s4-bg:#E6F4EC;
+  --radius:12px;
+  --font:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--paper);color:var(--ink);line-height:1.45;padding:16px;padding-bottom:90px}
+.wrap{max-width:820px;margin:0 auto}
+
+h1{font-size:1.4rem;font-weight:700;letter-spacing:-.01em}
+h1 .clicks{color:var(--teal)}
+.sub{color:var(--ink-soft);font-size:.85rem;margin-bottom:16px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+.card h2{font-size:1.05rem;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h2 .disc{font-size:.72rem;font-weight:600;color:var(--ink-soft);background:#EEF3F8;border-radius:999px;padding:3px 9px}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+
+.mode-picker{margin-bottom:16px}
+.mode-picker .plabel{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:10px}
+.mode-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:520px){.mode-row{grid-template-columns:1fr}}
+.mbtn{
+  font-family:var(--font);border:1.5px solid var(--line);background:#FBFCFE;border-radius:10px;
+  padding:12px 10px;cursor:pointer;text-align:left;transition:transform .06s,background .12s,border-color .12s;
+}
+.mbtn:active{transform:scale(.98)}
+.mbtn .mtitle{font-weight:700;font-size:.95rem;display:flex;align-items:center;gap:8px}
+.mbtn .mdisc{font-size:.72rem;color:var(--ink-soft);margin-top:3px}
+.mbtn .check{display:inline-flex;width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);flex:none}
+.mbtn.active{background:#E7F3F3;border-color:var(--teal)}
+.mbtn.active .check{background:var(--teal);border-color:var(--teal);box-shadow:inset 0 0 0 3px #E7F3F3}
+
+details.guide{margin-bottom:16px}
+details.guide summary{cursor:pointer;font-weight:600;font-size:.9rem;color:var(--teal-dk);padding:10px 14px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);list-style:none;display:flex;align-items:center;gap:8px}
+details.guide summary::before{content:"\25B8";transition:transform .15s}
+details.guide[open] summary::before{transform:rotate(90deg)}
+details.guide[open] summary{border-radius:var(--radius) var(--radius) 0 0}
+.guide-body{background:var(--card);border:1px solid var(--line);border-top:none;border-radius:0 0 var(--radius) var(--radius);padding:6px 14px 14px}
+.guide-table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:8px}
+.guide-table th,.guide-table td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.guide-table th{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft)}
+.guide-table tr:last-child td{border-bottom:none}
+.score-pill{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;color:#fff;font-weight:700;font-size:.85rem}
+.sp1{background:var(--s1)}.sp2{background:var(--s2)}.sp3{background:var(--s3)}.sp4{background:var(--s4)}
+.guide-note{font-size:.8rem;color:var(--ink-soft);margin-top:10px;font-style:italic}
+
+.dots{display:flex;gap:5px}
+.dot{width:11px;height:11px;border-radius:50%;background:#E2E9F0;border:1px solid var(--line);transition:background .2s}
+.dot.on1{background:var(--s1);border-color:var(--s1)}
+.dot.on2{background:var(--s2);border-color:var(--s2)}
+.dot.on3{background:var(--s3);border-color:var(--s3)}
+.dot.on4{background:var(--s4);border-color:var(--s4)}
+
+.raw{font-family:var(--mono);font-size:1rem;font-weight:700;background:#EEF3F8;border-radius:8px;padding:5px 12px;color:var(--ink);white-space:nowrap}
+.raw.done{background:var(--teal);color:#fff}
+
+.interp-strip{display:none;margin-top:12px;padding:10px 12px;border-radius:9px;font-size:.85rem;line-height:1.5;border:1px solid var(--line);align-items:baseline;gap:8px}
+.interp-strip.show{display:flex}
+.interp-strip .iscore{font-family:var(--mono);font-weight:700;flex:none}
+.interp-strip.done{background:#E7F3F3;border-color:var(--teal);color:var(--ink-soft)}
+.interp-strip.done .iscore{color:var(--teal-dk)}
+
+.item{padding:12px 0;border-top:1px solid var(--line)}
+.item:first-of-type{border-top:none;margin-top:6px}
+.item-head{display:flex;align-items:baseline;gap:9px;margin-bottom:8px}
+.item-num{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--teal-dk);flex:none;width:20px}
+.item-task{font-size:.95rem;font-weight:600}
+.score-row{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+@media(max-width:480px){.score-row{gap:5px}}
+.sbtn{
+  font-family:var(--font);border:1.5px solid var(--line);background:#FBFCFE;border-radius:9px;
+  padding:8px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;
+  transition:transform .06s,background .12s,border-color .12s;min-height:56px;
+}
+.sbtn:active{transform:scale(.97)}
+.sbtn .n{font-weight:700;font-size:1.05rem}
+.sbtn .t{font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);text-align:center}
+.sbtn.sel1{background:var(--s1-bg);border-color:var(--s1)}.sbtn.sel1 .n{color:var(--s1)}
+.sbtn.sel2{background:var(--s2-bg);border-color:var(--s2)}.sbtn.sel2 .n{color:var(--s2)}
+.sbtn.sel3{background:var(--s3-bg);border-color:var(--s3)}.sbtn.sel3 .n{color:var(--s3)}
+.sbtn.sel4{background:var(--s4-bg);border-color:var(--s4)}.sbtn.sel4 .n{color:var(--s4)}
+
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+@media(max-width:560px){.result-grid{grid-template-columns:1fr}}
+.result-box{border:1px solid var(--line);border-radius:10px;padding:14px}
+.result-box .rlabel{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft)}
+.result-box .rscore{font-family:var(--mono);font-size:1.9rem;font-weight:700;margin:2px 0}
+.result-box .rinterp{font-size:.82rem;color:var(--ink-soft)}
+.rbar{height:7px;border-radius:999px;background:#E9EFF5;margin:8px 0 6px;overflow:hidden}
+.rbar>div{height:100%;border-radius:999px;background:var(--teal);width:0%;transition:width .3s}
+
+/* Functional Thresholds panel */
+.thresholds{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.thresholds h3{font-size:.85rem;font-weight:700;color:var(--ink);margin-bottom:6px}
+.rec{padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);background:#F6F8FA}
+.rec-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:3px}
+.rec-text{font-size:.95rem;font-weight:600;color:var(--ink)}
+.rec.pending .rec-text{font-weight:400;color:var(--ink-soft)}
+.rec.good{background:var(--s4-bg);border-color:var(--s4)}.rec.good .rec-label{color:var(--s4)}
+.rec.ok{background:var(--s3-bg);border-color:var(--s3)}.rec.ok .rec-label{color:var(--s3)}
+.rec.low{background:var(--s2-bg);border-color:var(--s2)}.rec.low .rec-label{color:var(--s2)}
+.thresholds p{font-size:.82rem;color:var(--ink-soft);line-height:1.55;margin-bottom:8px}
+.thresholds ul{list-style:none;padding-left:0;margin-top:6px}
+.thresholds li{font-size:.82rem;color:var(--ink-soft);line-height:1.55;margin-bottom:8px;padding-left:14px;position:relative}
+.thresholds li::before{content:"•";position:absolute;left:0;top:0;color:var(--teal);font-weight:700}
+.thresholds .cutoff{font-weight:700;color:var(--ink);font-family:var(--mono)}
+.cref{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;font-size:.68rem;font-weight:700;background:var(--teal);color:#fff;border-radius:4px;text-decoration:none;margin:0 2px;vertical-align:1px;font-family:var(--mono)}
+.cref:hover{background:var(--teal-dk)}
+
+.refs{font-size:.78rem;line-height:1.55;color:var(--ink-soft)}
+.refs h2{font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:10px}
+.refs ol{padding-left:22px}
+.refs li{margin-bottom:8px;scroll-margin-top:20px}
+.refs li:target{background:#FFF8DC;padding:4px 6px;margin-left:-6px;border-radius:6px;transition:background 1.5s}
+.refs li a{color:var(--teal-dk);text-decoration:none;word-break:break-all}
+.refs li a:hover{text-decoration:underline}
+.refs .cite-title{font-style:italic}
+
+.hidden{display:none}
+
+.actions{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);border-top:1px solid var(--line);padding:10px 16px;backdrop-filter:blur(6px);z-index:10}
+.actions-inner{max-width:820px;margin:0 auto;display:flex;gap:8px}
+button.act{
+  font-family:var(--font);font-size:.85rem;font-weight:600;border-radius:9px;padding:11px 14px;cursor:pointer;
+  border:1px solid var(--line);background:#fff;color:var(--ink);flex:1;
+}
+button.act.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+button.act:active{transform:scale(.98)}
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;font-size:.85rem;font-weight:600;padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:20}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+input:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+@media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>AM-PAC <span class="clicks">&ldquo;6-Clicks&rdquo;</span> Calculator</h1>
+  <div class="sub">Assess PT/OT needs and discharge readiness. Score one form for quick triage, or both for the full picture. Tap a score for each item &mdash; totals and a recommendation calculate automatically.</div>
+
+  <div class="card mode-picker">
+    <div class="plabel">Which short form(s)?</div>
+    <div class="mode-row" id="modeRow">
+      <button type="button" class="mbtn" data-mode="bm" onclick="setMode('bm')">
+        <div class="mtitle"><span class="check"></span> Basic Mobility</div>
+        <div class="mdisc">Mobility &middot; 6 items</div>
+      </button>
+      <button type="button" class="mbtn" data-mode="da" onclick="setMode('da')">
+        <div class="mtitle"><span class="check"></span> Daily Activity</div>
+        <div class="mdisc">Self-care &middot; 6 items</div>
+      </button>
+      <button type="button" class="mbtn" data-mode="both" onclick="setMode('both')">
+        <div class="mtitle"><span class="check"></span> Both</div>
+        <div class="mdisc">12 items total</div>
+      </button>
+    </div>
+  </div>
+
+  <details class="guide">
+    <summary>Scoring guide (1&ndash;4)</summary>
+    <div class="guide-body">
+      <table class="guide-table">
+        <thead><tr><th>Score</th><th>Rating</th><th>Clinical meaning</th></tr></thead>
+        <tbody>
+          <tr><td><span class="score-pill sp1">1</span></td><td><strong>Unable</strong></td><td>Total / dependent assist (&gt;75% assistance needed)</td></tr>
+          <tr><td><span class="score-pill sp2">2</span></td><td><strong>A Lot</strong></td><td>Max / mod assist (50%&ndash;75% assistance needed)</td></tr>
+          <tr><td><span class="score-pill sp3">3</span></td><td><strong>A Little</strong></td><td>Min / contact guard assist / supervision (&lt;25% assistance needed)</td></tr>
+          <tr><td><span class="score-pill sp4">4</span></td><td><strong>No Assistance</strong></td><td>Modified independent / independent (no physical help needed)</td></tr>
+        </tbody>
+      </table>
+      <p class="guide-note">Score based on observed performance or clinical judgment. Do not alter the intent of the item.
+        <a class="cref" href="#ref1">1</a><a class="cref" href="#ref2">2</a><a class="cref" href="#ref3">3</a></p>
+    </div>
+  </details>
+
+  <div id="sections"></div>
+
+  <div class="card" id="summaryCard">
+    <h2>Score summary</h2>
+    <div class="result-grid" id="resultGrid"></div>
+
+    <div class="thresholds" id="thresholdsPanel">
+      <div id="threshBody"></div>
+    </div>
+  </div>
+
+  <div class="card refs">
+    <h2>References</h2>
+    <ol>
+      <li id="ref1">
+        Jette DU, Stilphen M, Ranganathan VK, Passek SD, Frost FS, Jette AM.
+        <span class="cite-title">Validity of the AM-PAC &ldquo;6-Clicks&rdquo; inpatient daily activity and basic mobility short forms.</span>
+        Phys Ther. 2014;94(3):379&ndash;391. doi:<a href="https://doi.org/10.2522/ptj.20130199" target="_blank" rel="noopener">10.2522/ptj.20130199</a>.
+      </li>
+      <li id="ref2">
+        Jette DU, Stilphen M, Ranganathan VK, Passek SD, Frost FS, Jette AM.
+        <span class="cite-title">AM-PAC &ldquo;6-Clicks&rdquo; functional assessment scores predict acute care hospital discharge destination.</span>
+        Phys Ther. 2014;94(9):1252&ndash;1261. doi:<a href="https://doi.org/10.2522/ptj.20130359" target="_blank" rel="noopener">10.2522/ptj.20130359</a>.
+      </li>
+      <li id="ref3">
+        Jette DU, Stilphen M, Ranganathan VK, Passek S, Frost FS, Jette AM.
+        <span class="cite-title">Interrater reliability of AM-PAC &ldquo;6-Clicks&rdquo; basic mobility and daily activity short forms.</span>
+        Phys Ther. 2015;95(5):758&ndash;766. doi:<a href="https://doi.org/10.2522/ptj.20140174" target="_blank" rel="noopener">10.2522/ptj.20140174</a>.
+      </li>
+      <li id="ref4">
+        Howard M, Stinner D.
+        <span class="cite-title">Utilizing the AM-PAC &ldquo;6-clicks&rdquo; basic mobility functional assessment to determine a standard of care for the utilization of occupational therapy services status post elective spine surgery.</span>
+        Poster presented at: Lehigh Valley Health Network; 2021; Allentown, PA. Available from:
+        <a href="https://scholarlyworks.lvhn.org/posters/1017/" target="_blank" rel="noopener">scholarlyworks.lvhn.org/posters/1017</a>.
+      </li>
+      <li id="ref5">
+        Martinez M, Cerasale M, Baig M, Dugan C, Robinson M, Sweis M, et al.
+        <span class="cite-title">Defining potential overutilization of physical therapy consults on hospital medicine services.</span>
+        J Hosp Med. 2021;16(9):553&ndash;555. doi:<a href="https://doi.org/10.12788/jhm.3673" target="_blank" rel="noopener">10.12788/jhm.3673</a>.
+      </li>
+      <li id="ref6">
+        Martinez M, Cerasale M, Baig M, Johnson JK, Dugan C, Brown A, et al.
+        <span class="cite-title">Reducing physical therapy consults for patients with high functional mobility in the acute medical inpatient setting: a difference-in-difference analysis.</span>
+        Arch Phys Med Rehabil. 2024;105(1):125&ndash;130. doi:<a href="https://doi.org/10.1016/j.apmr.2023.08.017" target="_blank" rel="noopener">10.1016/j.apmr.2023.08.017</a>.
+      </li>
+      <li id="ref7">
+        Boynton T.
+        <span class="cite-title">The Bedside Mobility Assessment Tool (BMAT) embedded in the new Mobility Screening and Solutions Tool (MSST): addressing inaccuracies.</span>
+        BMC Health Serv Res. 2024;24:1164. doi:<a href="https://doi.org/10.1186/s12913-024-11655-z" target="_blank" rel="noopener">10.1186/s12913-024-11655-z</a>.
+      </li>
+      <li id="ref8">
+        Capo-Lugo CE, McLaughlin KH, Ye B, Daley K, Young DL, Lavezza A, et al.
+        <span class="cite-title">Using nursing assessments of mobility and activity to prioritize patients most likely to need rehabilitation services.</span>
+        Arch Phys Med Rehabil. 2023;104(9):1402&ndash;1408. doi:<a href="https://doi.org/10.1016/j.apmr.2023.03.018" target="_blank" rel="noopener">10.1016/j.apmr.2023.03.018</a>.
+      </li>
+    </ol>
+  </div>
+
+</div>
+
+<div class="actions">
+  <div class="actions-inner">
+    <button class="act primary" onclick="copySummary()">Copy scores</button>
+    <button class="act" onclick="resetAll()">Reset</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const STORE_KEY = "ampac6clicks_calc_v4";
+
+const SECTIONS = {
+  bm: {
+    id: "bm",
+    title: "Basic Mobility",
+    disc: "Any clinician",
+    items: [
+      "Turning over in bed",
+      "Lying down to sitting on edge of bed",
+      "Bed to chair (seated transfer)",
+      "Standing up from a chair",
+      "Walking in room",
+      "Climbing 3\u20135 steps with a railing"
+    ]
+  },
+  da: {
+    id: "da",
+    title: "Daily Activity / Self-Care",
+    disc: "Any clinician",
+    items: [
+      "Feeding / eating meals",
+      "Personal grooming (teeth, face)",
+      "Upper body dressing (on & off)",
+      "Lower body dressing (on & off)",
+      "Bathing (washing, rinsing, drying)",
+      "Toileting (toilet, bedpan, or urinal)"
+    ]
+  }
+};
+
+const SCORE_LABELS = ["Unable","A Lot","A Little","No Assist"];
+
+let state = blankState();
+function blankState(){
+  return { mode:null, scores:{ bm:Array(6).fill(null), da:Array(6).fill(null) } };
+}
+
+function activeIds(){
+  if(state.mode === "bm") return ["bm"];
+  if(state.mode === "da") return ["da"];
+  if(state.mode === "both") return ["bm","da"];
+  return [];
+}
+
+function setMode(mode){
+  const modeChanged = state.mode !== mode;
+  state.mode = mode;
+  document.querySelectorAll(".mbtn").forEach(function(b){
+    b.classList.toggle("active", b.dataset.mode === mode);
+  });
+  buildSections();
+  buildSummary();
+  refresh();
+  save();
+  if(modeChanged){
+    setTimeout(function(){
+      const first = document.querySelector("#sections .card");
+      if(first) first.scrollIntoView({behavior:"smooth", block:"start"});
+    }, 60);
+  }
+}
+
+function buildSections(){
+  const host = document.getElementById("sections");
+  host.innerHTML = "";
+  activeIds().forEach(function(secId){
+    const sec = SECTIONS[secId];
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML =
+      '<div class="section-head">'+
+        '<h2>'+sec.title+' <span class="disc">'+sec.disc+'</span></h2>'+
+        '<div style="display:flex;align-items:center;gap:10px">'+
+          '<div class="dots" id="'+sec.id+'Dots" aria-hidden="true">'+'<div class="dot"></div>'.repeat(6)+'</div>'+
+          '<div class="raw" id="'+sec.id+'Raw">&mdash; / 24</div>'+
+        '</div>'+
+      '</div>'+
+      sec.items.map(function(task,i){
+        return '<div class="item">'+
+          '<div class="item-head">'+
+            '<span class="item-num">'+(i+1)+'</span>'+
+            '<span class="item-task">'+task+'</span>'+
+          '</div>'+
+          '<div class="score-row" role="radiogroup" aria-label="Score for: '+task+'">'+
+            [1,2,3,4].map(function(s){
+              return '<button type="button" class="sbtn" id="'+sec.id+'b'+i+'s'+s+'" '+
+                     'role="radio" aria-checked="false" '+
+                     'onclick="setScore(\''+sec.id+'\','+i+','+s+')">'+
+                     '<span class="n">'+s+'</span><span class="t">'+SCORE_LABELS[s-1]+'</span>'+
+                     '</button>';
+            }).join("")+
+          '</div>'+
+        '</div>';
+      }).join("")+
+      '<div class="interp-strip" id="'+sec.id+'Strip" role="status" aria-live="polite"></div>';
+    host.appendChild(card);
+  });
+}
+
+function buildSummary(){
+  const grid = document.getElementById("resultGrid");
+  const card = document.getElementById("summaryCard");
+  const thresh = document.getElementById("thresholdsPanel");
+  const ids = activeIds();
+  if(ids.length === 0){
+    card.classList.add("hidden");
+    grid.innerHTML = "";
+    return;
+  }
+  card.classList.remove("hidden");
+  // Recommendation panel shown for any active form
+  thresh.classList.remove("hidden");
+  buildRecommendation();
+  grid.style.gridTemplateColumns = ids.length === 1 ? "1fr" : "1fr 1fr";
+  grid.innerHTML = ids.map(function(secId){
+    const sec = SECTIONS[secId];
+    return '<div class="result-box">'+
+      '<div class="rlabel">'+sec.title+'</div>'+
+      '<div class="rscore" id="'+secId+'Score">&mdash; / 24</div>'+
+      '<div class="rbar"><div id="'+secId+'Bar"></div></div>'+
+      '<div class="rinterp" id="'+secId+'Interp">0 of 6 items scored</div>'+
+    '</div>';
+  }).join("");
+}
+
+function setScore(secId, idx, score){
+  state.scores[secId][idx] = (state.scores[secId][idx] === score) ? null : score;
+  refresh();
+  save();
+}
+
+function refresh(){
+  activeIds().forEach(function(secId){
+    const arr = state.scores[secId];
+    arr.forEach(function(val,i){
+      for(let s=1;s<=4;s++){
+        const b = document.getElementById(secId+"b"+i+"s"+s);
+        if(!b) continue;
+        b.className = "sbtn" + (val===s ? " sel"+s : "");
+        b.setAttribute("aria-checked", val===s ? "true" : "false");
+      }
+    });
+    const dotsEl = document.getElementById(secId+"Dots");
+    if(dotsEl){
+      const dots = dotsEl.children;
+      arr.forEach(function(val,i){ dots[i].className = "dot" + (val ? " on"+val : ""); });
+    }
+    const done = arr.filter(function(v){return v!==null;}).length;
+    const sum = arr.reduce(function(a,v){return a+(v||0);},0);
+    const complete = done===6;
+
+    const rawEl = document.getElementById(secId+"Raw");
+    if(rawEl){
+      rawEl.textContent = (complete ? sum : "\u2014") + " / 24";
+      rawEl.className = "raw" + (complete ? " done" : "");
+    }
+    const scoreEl = document.getElementById(secId+"Score");
+    const barEl = document.getElementById(secId+"Bar");
+    const interpEl = document.getElementById(secId+"Interp");
+    if(scoreEl){
+      if(complete){
+        scoreEl.textContent = sum + " / 24";
+        barEl.style.width = Math.round(((sum-6)/18)*100) + "%";
+        interpEl.textContent = interpText(sum, secId);
+      } else {
+        scoreEl.textContent = (done ? sum+"*" : "\u2014") + " / 24";
+        barEl.style.width = "0%";
+        interpEl.textContent = done + " of 6 items scored" + (done ? " (partial sum shown)" : "");
+      }
+    }
+    const stripEl = document.getElementById(secId+"Strip");
+    if(stripEl){
+      if(complete){
+        stripEl.className = "interp-strip show done";
+        stripEl.innerHTML = '<span class="iscore">'+sum+' / 24</span><span>'+SECTIONS[secId].title+' complete</span>';
+      } else {
+        stripEl.className = "interp-strip";
+        stripEl.innerHTML = "";
+      }
+    }
+  });
+  updateRecommendation();
+}
+
+// Single Recommended action, computed from the actual scores of the active form(s).
+// This is the only place actions (consult / disposition) are stated.
+function recommendation(){
+  const ids = activeIds();
+  const sums = {}, complete = {};
+  ids.forEach(function(id){
+    const arr = state.scores[id];
+    complete[id] = arr.every(function(v){return v!==null;});
+    sums[id] = arr.reduce(function(a,v){return a+(v||0);},0);
+  });
+  if(!ids.every(function(id){return complete[id];})){
+    return { band:"pending", text:"Score all items to generate a recommendation." };
+  }
+  if(ids.length === 1){
+    const id = ids[0], sum = sums[id];
+    const therapist = id==="bm" ? "PT" : "OT";
+    if(sum >= 22) return { band:"good", text:"Likely home; "+therapist+" consult usually not needed." };
+    if(sum >= 18) return { band:"ok", text:"Likely home; "+therapist+" unlikely to change course." };
+    return { band:"low", text:"Consult "+therapist+"; discharge to facility possible." };
+  }
+  const bm = sums.bm, da = sums.da;
+  if(bm >= 18 && da >= 18){
+    if(bm >= 22 && da >= 22) return { band:"good", text:"Likely home; PT/OT consults usually not needed." };
+    return { band:"ok", text:"Likely home; therapy unlikely to change course." };
+  }
+  if(bm <= 17 && da <= 17) return { band:"low", text:"Consult PT and OT; discharge to facility likely." };
+  return { band:"low", text:"Consult "+(bm<=17 ? "PT" : "OT")+"; discharge to facility possible." };
+}
+
+function updateRecommendation(){
+  const box = document.getElementById("recBox");
+  const txt = document.getElementById("recText");
+  if(!box || !txt) return;
+  const rec = recommendation();
+  box.className = "rec " + rec.band;
+  txt.textContent = rec.text;
+}
+
+function buildRecommendation(){
+  const body = document.getElementById("threshBody");
+  if(!body) return;
+  body.innerHTML =
+    '<div class="rec pending" id="recBox" role="status" aria-live="polite">'+
+      '<div class="rec-label">Recommended action</div>'+
+      '<div class="rec-text" id="recText">Score all items to generate a recommendation.</div>'+
+    '</div>';
+  updateRecommendation();
+}
+
+// Band descriptor per form (no actions here — actions live in Recommended action).
+function interpText(sum, secId){
+  if(secId === "bm"){
+    if(sum >= 22) return "22\u201324 \u2014 independent mobility";
+    if(sum >= 18) return "18\u201321 \u2014 mobile";
+    return "6\u201317 \u2014 reduced mobility";
+  }
+  if(sum >= 22) return "22\u201324 \u2014 independent self-care";
+  if(sum >= 18) return "18\u201321 \u2014 manages most self-care";
+  return "6\u201317 \u2014 reduced self-care function";
+}
+
+function save(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){}
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){
+      const s = JSON.parse(raw);
+      if(s && s.scores && s.scores.bm && s.scores.da){
+        state = s;
+        if(!state.mode) state.mode = null;
+      }
+    }
+  }catch(e){}
+}
+function resetAll(){
+  state = blankState();
+  try{ localStorage.removeItem(STORE_KEY); }catch(e){}
+  document.querySelectorAll(".mbtn").forEach(function(b){ b.classList.remove("active"); });
+  buildSections();
+  buildSummary();
+  showToast("Reset \u2014 choose a short form");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function copySummary(){
+  if(!state.mode){ showToast("Choose a short form first"); return; }
+  const lines = [];
+  lines.push("AM-PAC \u201c6-Clicks\u201d Scores");
+  activeIds().forEach(function(secId){
+    const sec = SECTIONS[secId];
+    const arr = state.scores[secId];
+    const done = arr.filter(function(v){return v!==null;}).length;
+    const sum = arr.reduce(function(a,v){return a+(v||0);},0);
+    lines.push("");
+    lines.push(sec.title + ":");
+    sec.items.forEach(function(task,i){
+      const v = arr[i];
+      lines.push("  " + (i+1) + ". " + task + ": " + (v ? v + " (" + SCORE_LABELS[v-1] + ")" : "\u2014"));
+    });
+    lines.push("  Raw score: " + (done===6 ? sum + "/24 \u2014 " + interpText(sum, secId) : "incomplete (" + done + "/6 items)"));
+  });
+  const rec = recommendation();
+  if(rec.band !== "pending"){
+    lines.push("");
+    lines.push("Recommended action: " + rec.text);
+  }
+  lines.push("");
+  lines.push("Ref: Jette DU, et al. Phys Ther. 2014;94(3):379-391.");
+  const text = lines.join("\n");
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){showToast("Scores copied");}, function(){fallbackCopy(text);});
+  } else fallbackCopy(text);
+}
+function fallbackCopy(text){
+  const ta = document.createElement("textarea");
+  ta.value = text; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); showToast("Scores copied"); }
+  catch(e){ showToast("Copy failed"); }
+  document.body.removeChild(ta);
+}
+
+let toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){t.classList.remove("show");}, 2000);
+}
+
+// Init
+load();
+if(state.mode){
+  document.querySelectorAll(".mbtn").forEach(function(b){
+    b.classList.toggle("active", b.dataset.mode === state.mode);
+  });
+  buildSections();
+  buildSummary();
+  refresh();
+} else {
+  buildSections();
+  buildSummary();
+}
+</script>
+</body>
+</html>
