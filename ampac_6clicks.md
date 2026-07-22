@@ -1,20 +1,23 @@
-# AM-PAC "6-Clicks" Calculator
+# AM-PAC "6-Clicks" Calculator — Design Notes
 
 Single-file HTML calculator for the Activity Measure for Post-Acute Care "6-Clicks" inpatient short forms. Bedside-ready, offline-capable, and self-contained — no build step, no dependencies, no PHI storage.
 
 ## What it does
 
-Lets a clinician tap a 1–4 score for each item of the Basic Mobility (PT/Nursing) or Daily Activity / Self-Care (OT/Nursing) short form and computes raw totals automatically. The user chooses which short form(s) to score at the top; only the chosen section(s) render. Basic Mobility raw scores are interpreted against the published functional thresholds for PT/OT consult necessity and discharge disposition.
+Lets a clinician tap a 1–4 score for each item of the Basic Mobility or Daily Activity / Self-Care short form and computes raw totals automatically. The user chooses which short form(s) to score at the top; only the chosen section(s) render. Raw scores are interpreted against a simplified discharge-and-therapy guide that adapts to the selected form(s).
 
 ## Features
 
 - **Mode selector.** Basic Mobility only, Daily Activity only, or Both.
 - **Tap-to-score UI.** 4 large color-coded buttons (Unable / A Lot / A Little / No Assist) per item; tap a selected score again to clear.
 - **Live totals.** Six-dot progress tracker and running raw score chip in each section header; chip turns teal when all 6 items are scored.
-- **Score summary card.** Raw score /24, progress bar, and per-band interpretation.
-- **Functional Thresholds panel** (Basic Mobility only) with the published PT/OT consult cutoffs and their supporting citations as clickable chips.
-- **Vancouver-format references** with clickable DOIs, numbered by order of first citation in the text.
-- **Copy scores.** Generates a plain-text score block for pasting into an EHR note, including the Basic Mobility cutoffs when BM is in scope.
+- **Score summary card.** Raw score /24, progress bar, and per-band interpretation (three bands per form).
+- **Adaptive interpretation guide** in the summary card:
+  - Basic Mobility selected → a **Basic Mobility** row only.
+  - Daily Activity selected → a **Daily Activity/Self-Care** row only.
+  - Both selected → both rows, a **Combined** rule row, and a live **This patient** readout that fills in once all 12 items are scored.
+- **Copy scores.** Generates a plain-text score block for pasting into an EHR note, including the guide line(s) for the active form(s) and the combined rule in Both mode.
+- **Vancouver-format references** with clickable DOIs, retained as background reading.
 - **Auto-save.** Scores persist across page reloads via `localStorage`; Reset clears both the scores and the mode selection.
 - **Accessible.** Radiogroup semantics on score rows, visible keyboard focus, `prefers-reduced-motion` respected.
 - **Responsive.** Down to phone width.
@@ -33,7 +36,7 @@ Score based on observed performance or clinical judgment. Do not alter the inten
 
 ## Short-form items
 
-### Basic Mobility (PT / Nursing)
+### Basic Mobility
 
 1. Turning over in bed
 2. Lying down to sitting on edge of bed
@@ -42,7 +45,7 @@ Score based on observed performance or clinical judgment. Do not alter the inten
 5. Walking in room
 6. Climbing 3–5 steps with a railing
 
-### Daily Activity / Self-Care (OT / Nursing)
+### Daily Activity / Self-Care
 
 1. Feeding / eating meals
 2. Personal grooming (teeth, face)
@@ -51,49 +54,47 @@ Score based on observed performance or clinical judgment. Do not alter the inten
 5. Bathing (washing, rinsing, drying)
 6. Toileting (toilet, bedpan, or urinal)
 
-## Functional thresholds (Basic Mobility)
+## Interpretation scheme
 
-Hospitalized patients with AM-PAC "6-Clicks" Basic Mobility scores of **≤18/24** generally require PT and OT consults, as scores >18 indicate high baseline mobility that rarely changes during a hospital stay. Scores of **≤15** specifically trigger OT, as they correlate with discharge to rehab facilities.<sup>4,5,6</sup>
+Simplified, form-symmetric cutoffs used throughout the app:
 
-- **≤18 Basic Mobility** — low mobility and the primary cutoff for PT/OT necessity. Patients scoring above this are often over-consulted, as they can usually be discharged home without significant functional changes.<sup>5,6,7</sup>
-- **≤15 Basic Mobility** — stronger indicator for OT consult; patients scoring in the 14.5–17 range frequently require post-acute care or inpatient rehabilitation.<sup>4</sup>
-- **≥23** — highly independent function. Helps nursing staff and hospitalists identify patients who may not benefit from rehab services (consults often lower-value or limited to a single visit).<sup>8,4</sup>
+| Form | 18–24 | ≤17 |
+| :--- | :---- | :-- |
+| Basic Mobility | Likely home | Consult PT; facility possible |
+| Daily Activity/Self-Care | Likely home | Consult OT; facility possible |
 
-Published thresholds are Basic Mobility–specific; parallel descriptive bands are shown for Daily Activity, but no comparable Daily-Activity cutoffs have been published.
+**Combined rule** (Both mode): both ≥18 → home likely · either ≤17 → consult therapy · both ≤17 → facility likely.
 
-### Interpretation bands used in the summary card
+### Summary-card bands (implemented in `interpText`)
 
-**Basic Mobility**
+| Score | Basic Mobility | Daily Activity |
+| :---: | :------------- | :------------- |
+| 22–24 | Independent mobility; PT usually not needed | Independent self-care; OT usually not needed |
+| 18–21 | Mobile; likely home | Manages self-care; likely home |
+| 6–17  | Needs mobility help; consult PT; facility possible | Needs self-care help; consult OT; facility possible |
 
-| Score | Band                                                                                    |
-| :---: | :-------------------------------------------------------------------------------------- |
-| ≥23   | Highly independent; rehab consult often lower-value                                     |
-| 19–22 | Higher baseline mobility; PT/OT rarely change trajectory                                |
-| 16–18 | Low mobility; PT/OT consult typically indicated                                         |
-| 12–15 | Very low mobility; OT consult indicated; higher likelihood of post-acute care           |
-| ≤11   | Severe impairment; dependent range                                                      |
+### Live combined readout (`updateCombined`)
 
-**Daily Activity** (descriptive; no published cutoffs)
+Rendered only in Both mode, only when both forms are complete:
 
-| Score | Band                                          |
-| :---: | :-------------------------------------------- |
-| ≥23   | Largely independent in self-care              |
-| 19–22 | Mild impairment in self-care                  |
-| 16–18 | Moderate impairment; assistance needed        |
-| 12–15 | Substantial dependence in self-care           |
-| ≤11   | Severe impairment; dependent range            |
+| Condition | Readout |
+| :--- | :--- |
+| BM ≥18 and DA ≥18 | Home likely (adds "therapy usually not needed" when both ≥22) |
+| Exactly one form ≤17 | Consult PT (if BM low) or OT (if DA low); facility possible |
+| BM ≤17 and DA ≤17 | Consult PT & OT; facility likely |
+
+### Relationship to the published literature
+
+These cutoffs are a pragmatic simplification for bedside triage. The cited literature reports Basic Mobility–specific thresholds — ≤18 as the primary PT/OT-necessity cutoff,<sup>5,6,7</sup> ≤15 as a stronger OT / post-acute-care indicator,<sup>4</sup> and ≥23 as highly independent<sup>8,4</sup> — and no published Daily Activity cutoffs. The references are retained in the app for the underlying evidence, but the panel no longer displays per-claim citation chips.
 
 ## Architecture
 
-Single-file HTML with inline `<style>` and `<script>`. No external assets, no CDN calls, no network dependencies. Governed by the same three-file lockstep convention used elsewhere:
+Single-file HTML (`index.html`) with inline `<style>` and `<script>`. No external assets, no CDN calls, no network dependencies.
 
-| File                    | Purpose                                              |
-| :---------------------- | :--------------------------------------------------- |
-| `ampac_6clicks.html`    | The app itself.                                      |
-| `ampac_6clicks.md`      | This document (design notes + citations).            |
-| `ampac_6clicks.xlsx`\*  | Reserved for a spec workbook if formalized later.    |
-
-\*Not currently created.
+| File               | Purpose                                              |
+| :----------------- | :--------------------------------------------------- |
+| `index.html`       | The app itself (named for GitHub Pages root serving).|
+| `ampac_6clicks.md` | This document (design notes + citations).            |
 
 ### State model
 
@@ -107,11 +108,24 @@ state = {
 }
 ```
 
-Persisted to `localStorage` under the key `ampac6clicks_calc_v4`. Reset clears both the persisted state and the DOM.
+Persisted to `localStorage` under the key `ampac6clicks_calc_v4`. The schema is unchanged from v4 (mode + scores), so the key was not bumped when the interpretation scheme was simplified. Reset clears both the persisted state and the DOM.
 
 ### Scoring math
 
 Raw score = sum of six items (min 6, max 24). Section shown as `— / 24` until all six items are scored; if fewer than six are complete, a partial sum is displayed with an asterisk and the count of items scored. Progress-bar fill = `((raw − 6) / 18) × 100%`.
+
+### Key functions
+
+| Function | Role |
+| :--- | :--- |
+| `setMode` / `activeIds` | Mode selection; which sections render |
+| `buildSections` | Renders the tap-to-score item cards |
+| `buildSummary` | Renders result boxes; shows the interpretation panel for any active mode |
+| `buildThresholds(ids)` | Renders the adaptive guide rows (per-form, plus Combined + This patient in Both mode) |
+| `refresh` | Updates buttons, dots, totals, bands; calls `updateCombined` |
+| `updateCombined` | Live combined readout in Both mode |
+| `interpText(sum, secId)` | Three-band interpretation per form |
+| `copySummary` | Assembles the plain-text EHR block |
 
 ## Copy-to-note output
 
@@ -124,12 +138,17 @@ Basic Mobility:
   1. Turning over in bed: 3 (A Little)
   2. Lying down to sitting on edge of bed: 3 (A Little)
   ...
-  Raw score: 18/24 — 16–18 — low mobility; PT/OT consult typically indicated
+  Raw score: 18/24 — 18–21 — mobile; likely home
 
-Basic Mobility cutoffs: ≤18 low mobility (PT/OT indicated);
-  ≤15 OT consult / post-acute care likely; ≥23 highly independent.
+Basic Mobility guide: 18-24 home; 17 or lower consult PT, facility possible.
 
 Ref: Jette DU, et al. Phys Ther. 2014;94(3):379-391.
+```
+
+In Both mode the block includes both forms, both guide lines, and:
+
+```
+Combined: both >=18 home likely; either <=17 consult therapy; both <=17 facility likely.
 ```
 
 ## References
@@ -145,7 +164,8 @@ Ref: Jette DU, et al. Phys Ther. 2014;94(3):379-391.
 
 ## Notes and caveats
 
-- **Not a clinical decision system.** Cutoffs are informational summaries of published thresholds; individual patient decisions require clinical judgment.
+- **Not a clinical decision system.** The interpretation guide is an informational simplification; individual patient decisions require clinical judgment.
+- **Simplified cutoffs.** The 18/17 and combined-rule scheme differs from the published Basic Mobility thresholds (≤18, ≤15, ≥23); see "Relationship to the published literature" above.
 - **T-score conversion.** Not implemented in this build. EHR systems convert raw AM-PAC scores to standardized T-scores using published lookup tables; the app reports raw scores only.
 - **License / permissions.** The AM-PAC 6-Clicks instrument is licensed through Boston University / Pearson Assessments. This calculator reproduces the six-item Basic Mobility and Daily Activity content from the widely published clinical short forms (see refs 1–3). Institutional use should verify current licensing terms with the rights holder.
 

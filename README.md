@@ -3,18 +3,18 @@
 A single-file HTML calculator for the **Activity Measure for Post-Acute Care (AM-PAC) "6-Clicks"** inpatient short forms — Basic Mobility and Daily Activity / Self-Care. Bedside-ready, offline-capable, no build step, no PHI.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-teal.svg)](LICENSE)
-[![Made with HTML](https://img.shields.io/badge/single--file-HTML-blue.svg)](ampac_6clicks.html)
-[![No dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](ampac_6clicks.html)
+[![Made with HTML](https://img.shields.io/badge/single--file-HTML-blue.svg)](index.html)
+[![No dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](index.html)
 
 ## What it does
 
-Tap a 1–4 score for each of the six items in the Basic Mobility (PT/Nursing) or Daily Activity / Self-Care (OT/Nursing) short form. Raw totals compute live. Basic Mobility scores are interpreted against published functional thresholds for PT/OT consult necessity and discharge disposition.
+Tap a 1–4 score for each of the six items in the Basic Mobility or Daily Activity / Self-Care short form. Raw totals compute live and are interpreted against a simplified discharge-and-therapy guide that adapts to whichever form(s) are selected.
 
 ## Quick start
 
-**Option A — Open locally.** Download `ampac_6clicks.html` and open in any modern browser.
+**Option A — Open locally.** Download `index.html` and open in any modern browser.
 
-**Option B — GitHub Pages.** In your repository, enable Pages (Settings → Pages → Source: `main` / root) and browse to `https://<user>.github.io/<repo>/ampac_6clicks.html`.
+**Option B — GitHub Pages.** In your repository, enable Pages (Settings → Pages → Source: `main` / root) and browse to `https://<user>.github.io/<repo>/` — the app serves at the repo root because the file is named `index.html`.
 
 **Option C — Serve.** Any static host works. No server-side code, no build tools.
 
@@ -23,9 +23,9 @@ Tap a 1–4 score for each of the six items in the Basic Mobility (PT/Nursing) o
 git clone https://github.com/<user>/ampac-6clicks.git
 cd ampac-6clicks
 # open
-open ampac_6clicks.html    # macOS
-xdg-open ampac_6clicks.html # Linux
-start ampac_6clicks.html    # Windows
+open index.html     # macOS
+xdg-open index.html # Linux
+start index.html    # Windows
 ```
 
 ## Features
@@ -33,10 +33,10 @@ start ampac_6clicks.html    # Windows
 - **Mode selector** — Basic Mobility only, Daily Activity only, or both.
 - **Tap-to-score** — 4 large color-coded buttons per item (Unable / A Lot / A Little / No Assist); tap the selected score again to clear.
 - **Live totals** — six-dot tracker and running raw-score chip in each section header.
-- **Functional Thresholds panel** — inline PT/OT consult cutoffs (≤18, ≤15, ≥23) with clickable citation chips.
-- **Score summary** — raw score /24, progress bar, and per-band interpretation.
-- **Vancouver references** — 8 primary sources, ordered by first citation in the text, with clickable DOIs.
-- **Copy scores** — one tap generates a plain-text score block for pasting into an EHR note.
+- **Adaptive interpretation guide** — compact per-form rows (Basic Mobility, Daily Activity/Self-Care) shown only for the selected form(s); in Both mode a Combined rule and a live "This patient" readout appear once all 12 items are scored.
+- **Score summary** — raw score /24, progress bar, and a three-band interpretation per form.
+- **Vancouver references** — 8 primary sources with clickable DOIs, retained as background reading.
+- **Copy scores** — one tap generates a plain-text score block (scores + matching guide lines) for pasting into an EHR note.
 - **Auto-save** — scores persist across reloads via `localStorage`; Reset clears both scores and mode.
 - **Accessible** — radiogroup semantics, visible keyboard focus, `prefers-reduced-motion` respected.
 - **Responsive** — down to phone width.
@@ -51,24 +51,35 @@ start ampac_6clicks.html    # Windows
 |   3   | A Little      | Min / contact guard assist / supervision (<25% assist)  |
 |   4   | No Assistance | Modified independent / independent (no physical help)   |
 
-## Functional thresholds (Basic Mobility)
+## Interpretation guide
 
-Hospitalized patients with Basic Mobility scores of **≤18/24** generally require PT and OT consults; scores >18 indicate high baseline mobility that rarely changes during a hospital stay. Scores of **≤15** specifically trigger OT, as they correlate with discharge to rehab facilities.
+The app uses a simplified, form-symmetric scheme:
 
-- **≤18** — primary cutoff for PT/OT necessity
-- **≤15** — stronger indicator for OT consult; 14.5–17 range correlates with post-acute care / IRF discharge
-- **≥23** — highly independent; rehab consult often lower-value
+| Form | 18–24 | ≤17 |
+| :--- | :---- | :-- |
+| **Basic Mobility** | Likely home | Consult PT; facility possible |
+| **Daily Activity/Self-Care** | Likely home | Consult OT; facility possible |
 
-Published thresholds are Basic Mobility–specific. Daily Activity uses parallel descriptive bands, but no comparable published cutoffs exist.
+**Combined rule (Both mode):** both forms ≥18 → home likely · either form ≤17 → consult therapy · both forms ≤17 → facility likely. When both forms are fully scored, a live "This patient" line applies the rule to the entered scores.
+
+**Summary-card bands (per form):**
+
+| Score | Band |
+| :---: | :--- |
+| 22–24 | Independent; PT/OT usually not needed |
+| 18–21 | Likely home |
+| 6–17  | Needs help; consult PT/OT; facility possible |
+
+> **Note.** These cutoffs are a pragmatic simplification for bedside triage. The peer-reviewed literature (refs 4–8) reports Basic Mobility–specific thresholds (≤18 for PT/OT necessity, ≤15 for OT/post-acute care, ≥23 highly independent) and no published Daily Activity cutoffs. The references are retained below for the underlying evidence.
 
 ## File structure
 
 ```
 .
-├── ampac_6clicks.html    # the app (single file, no deps)
-├── ampac_6clicks.md      # design notes, state model, interp bands
+├── index.html            # the app (single file, no deps)
+├── ampac_6clicks.md      # design notes, state model, interp scheme
 ├── README.md             # this file
-├── LICENSE               # MIT (code only)
+├── LICENSE               # MIT (code only) + medical/instrument notices
 └── .gitignore
 ```
 
@@ -79,12 +90,12 @@ _Add screenshots to a `docs/` folder and reference them here:_
 ```markdown
 ![Mode picker](docs/screenshot-mode.png)
 ![Scoring](docs/screenshot-scoring.png)
-![Summary with thresholds](docs/screenshot-summary.png)
+![Summary with interpretation guide](docs/screenshot-summary.png)
 ```
 
 ## Development
 
-Nothing to install — edit `ampac_6clicks.html` directly and reload the browser. The three-file convention (HTML + Markdown design doc + optional XLSX spec) keeps documentation in lockstep with the app.
+Nothing to install — edit `index.html` directly and reload the browser. The design doc (`ampac_6clicks.md`) is kept in lockstep with the app.
 
 **State model:**
 
@@ -104,9 +115,9 @@ See [`ampac_6clicks.md`](ampac_6clicks.md) for full architecture notes.
 
 ## Disclaimer
 
-**Not medical software.** This calculator is a clinical reference tool that reproduces the arithmetic of the AM-PAC "6-Clicks" short forms and displays published threshold summaries from the peer-reviewed literature. It is **not** a medical device, is **not** FDA-cleared, and does **not** provide clinical decisions. Individual patient decisions require clinical judgment by a licensed clinician.
+**Not medical software.** This calculator is a clinical reference tool that reproduces the arithmetic of the AM-PAC "6-Clicks" short forms and displays a simplified interpretation guide. It is **not** a medical device, is **not** FDA-cleared, and does **not** provide clinical decisions. Individual patient decisions require clinical judgment by a licensed clinician.
 
-Cutoffs are informational summaries of the cited literature. T-score conversion is not implemented; the app reports raw scores only.
+The displayed cutoffs are a simplified digest and differ in places from the published Basic Mobility thresholds (see the note in Interpretation guide). T-score conversion is not implemented; the app reports raw scores only.
 
 ## AM-PAC instrument licensing
 

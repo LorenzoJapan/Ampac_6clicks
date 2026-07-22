@@ -67,6 +67,12 @@ details.guide[open] summary{border-radius:var(--radius) var(--radius) 0 0}
 .raw{font-family:var(--mono);font-size:1rem;font-weight:700;background:#EEF3F8;border-radius:8px;padding:5px 12px;color:var(--ink);white-space:nowrap}
 .raw.done{background:var(--teal);color:#fff}
 
+.interp-strip{display:none;margin-top:12px;padding:10px 12px;border-radius:9px;font-size:.85rem;line-height:1.5;border:1px solid var(--line);align-items:baseline;gap:8px}
+.interp-strip.show{display:flex}
+.interp-strip .iscore{font-family:var(--mono);font-weight:700;flex:none}
+.interp-strip.done{background:#E7F3F3;border-color:var(--teal);color:var(--ink-soft)}
+.interp-strip.done .iscore{color:var(--teal-dk)}
+
 .item{padding:12px 0;border-top:1px solid var(--line)}
 .item:first-of-type{border-top:none;margin-top:6px}
 .item-head{display:flex;align-items:baseline;gap:9px;margin-bottom:8px}
@@ -99,6 +105,13 @@ details.guide[open] summary{border-radius:var(--radius) var(--radius) 0 0}
 /* Functional Thresholds panel */
 .thresholds{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
 .thresholds h3{font-size:.85rem;font-weight:700;color:var(--ink);margin-bottom:6px}
+.rec{padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);background:#F6F8FA}
+.rec-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:3px}
+.rec-text{font-size:.95rem;font-weight:600;color:var(--ink)}
+.rec.pending .rec-text{font-weight:400;color:var(--ink-soft)}
+.rec.good{background:var(--s4-bg);border-color:var(--s4)}.rec.good .rec-label{color:var(--s4)}
+.rec.ok{background:var(--s3-bg);border-color:var(--s3)}.rec.ok .rec-label{color:var(--s3)}
+.rec.low{background:var(--s2-bg);border-color:var(--s2)}.rec.low .rec-label{color:var(--s2)}
 .thresholds p{font-size:.82rem;color:var(--ink-soft);line-height:1.55;margin-bottom:8px}
 .thresholds ul{list-style:none;padding-left:0;margin-top:6px}
 .thresholds li{font-size:.82rem;color:var(--ink-soft);line-height:1.55;margin-bottom:8px;padding-left:14px;position:relative}
@@ -136,18 +149,18 @@ input:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--teal);o
 <div class="wrap">
 
   <h1>AM-PAC <span class="clicks">&ldquo;6-Clicks&rdquo;</span> Calculator</h1>
-  <div class="sub">Choose which short form(s) to score. Tap a score for each item &mdash; raw totals calculate automatically.</div>
+  <div class="sub">Assess PT/OT needs and discharge readiness. Score one form for quick triage, or both for the full picture. Tap a score for each item &mdash; totals and a recommendation calculate automatically.</div>
 
   <div class="card mode-picker">
     <div class="plabel">Which short form(s)?</div>
     <div class="mode-row" id="modeRow">
       <button type="button" class="mbtn" data-mode="bm" onclick="setMode('bm')">
         <div class="mtitle"><span class="check"></span> Basic Mobility</div>
-        <div class="mdisc">PT / Nursing &middot; 6 items</div>
+        <div class="mdisc">Mobility &middot; 6 items</div>
       </button>
       <button type="button" class="mbtn" data-mode="da" onclick="setMode('da')">
         <div class="mtitle"><span class="check"></span> Daily Activity</div>
-        <div class="mdisc">OT / Nursing &middot; 6 items</div>
+        <div class="mdisc">Self-care &middot; 6 items</div>
       </button>
       <button type="button" class="mbtn" data-mode="both" onclick="setMode('both')">
         <div class="mtitle"><span class="check"></span> Both</div>
@@ -180,17 +193,7 @@ input:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--teal);o
     <div class="result-grid" id="resultGrid"></div>
 
     <div class="thresholds" id="thresholdsPanel">
-      <h3>Functional thresholds (Basic Mobility)</h3>
-      <p>Hospitalized patients with AM-PAC &ldquo;6-Clicks&rdquo; Basic Mobility scores of <span class="cutoff">&le;18/24</span> generally require PT and OT consults, as scores &gt;18 indicate high baseline mobility that rarely changes during a hospital stay. Scores of <span class="cutoff">&le;15</span> specifically trigger OT, as they correlate with discharge to rehab facilities.
-        <a class="cref" href="#ref4">4</a><a class="cref" href="#ref5">5</a><a class="cref" href="#ref6">6</a></p>
-      <ul>
-        <li><span class="cutoff">&le;18 Basic Mobility</span> &mdash; low mobility and the primary cutoff for PT/OT necessity. Patients scoring above this are often over-consulted, as they can usually be discharged home without significant functional changes.
-          <a class="cref" href="#ref5">5</a><a class="cref" href="#ref6">6</a><a class="cref" href="#ref7">7</a></li>
-        <li><span class="cutoff">&le;15 Basic Mobility</span> &mdash; stronger indicator for OT consult; patients scoring in the 14.5&ndash;17 range frequently require post-acute care or inpatient rehabilitation.
-          <a class="cref" href="#ref4">4</a></li>
-        <li><span class="cutoff">&ge;23</span> &mdash; highly independent function. Helps nursing staff and hospitalists identify patients who may not benefit from rehab services (consults often lower-value or limited to a single visit).
-          <a class="cref" href="#ref8">8</a><a class="cref" href="#ref4">4</a></li>
-      </ul>
+      <div id="threshBody"></div>
     </div>
   </div>
 
@@ -259,7 +262,7 @@ const SECTIONS = {
   bm: {
     id: "bm",
     title: "Basic Mobility",
-    disc: "PT / Nursing",
+    disc: "Any clinician",
     items: [
       "Turning over in bed",
       "Lying down to sitting on edge of bed",
@@ -272,7 +275,7 @@ const SECTIONS = {
   da: {
     id: "da",
     title: "Daily Activity / Self-Care",
-    disc: "OT / Nursing",
+    disc: "Any clinician",
     items: [
       "Feeding / eating meals",
       "Personal grooming (teeth, face)",
@@ -347,7 +350,8 @@ function buildSections(){
             }).join("")+
           '</div>'+
         '</div>';
-      }).join("");
+      }).join("")+
+      '<div class="interp-strip" id="'+sec.id+'Strip" role="status" aria-live="polite"></div>';
     host.appendChild(card);
   });
 }
@@ -363,17 +367,14 @@ function buildSummary(){
     return;
   }
   card.classList.remove("hidden");
-  // Thresholds panel only shown when BM is in scope
-  if(ids.indexOf("bm") !== -1){
-    thresh.classList.remove("hidden");
-  } else {
-    thresh.classList.add("hidden");
-  }
+  // Recommendation panel shown for any active form
+  thresh.classList.remove("hidden");
+  buildRecommendation();
   grid.style.gridTemplateColumns = ids.length === 1 ? "1fr" : "1fr 1fr";
   grid.innerHTML = ids.map(function(secId){
     const sec = SECTIONS[secId];
     return '<div class="result-box">'+
-      '<div class="rlabel">'+sec.title+' raw score</div>'+
+      '<div class="rlabel">'+sec.title+'</div>'+
       '<div class="rscore" id="'+secId+'Score">&mdash; / 24</div>'+
       '<div class="rbar"><div id="'+secId+'Bar"></div></div>'+
       '<div class="rinterp" id="'+secId+'Interp">0 of 6 items scored</div>'+
@@ -426,25 +427,79 @@ function refresh(){
         interpEl.textContent = done + " of 6 items scored" + (done ? " (partial sum shown)" : "");
       }
     }
+    const stripEl = document.getElementById(secId+"Strip");
+    if(stripEl){
+      if(complete){
+        stripEl.className = "interp-strip show done";
+        stripEl.innerHTML = '<span class="iscore">'+sum+' / 24</span><span>'+SECTIONS[secId].title+' complete</span>';
+      } else {
+        stripEl.className = "interp-strip";
+        stripEl.innerHTML = "";
+      }
+    }
   });
+  updateRecommendation();
 }
 
-// Basic Mobility interpretation bands aligned to the published thresholds.
-// Daily Activity uses parallel descriptive bands; published cutoffs are BM-specific.
+// Single Recommended action, computed from the actual scores of the active form(s).
+// This is the only place actions (consult / disposition) are stated.
+function recommendation(){
+  const ids = activeIds();
+  const sums = {}, complete = {};
+  ids.forEach(function(id){
+    const arr = state.scores[id];
+    complete[id] = arr.every(function(v){return v!==null;});
+    sums[id] = arr.reduce(function(a,v){return a+(v||0);},0);
+  });
+  if(!ids.every(function(id){return complete[id];})){
+    return { band:"pending", text:"Score all items to generate a recommendation." };
+  }
+  if(ids.length === 1){
+    const id = ids[0], sum = sums[id];
+    const therapist = id==="bm" ? "PT" : "OT";
+    if(sum >= 22) return { band:"good", text:"Likely home; "+therapist+" consult usually not needed." };
+    if(sum >= 18) return { band:"ok", text:"Likely home; "+therapist+" unlikely to change course." };
+    return { band:"low", text:"Consult "+therapist+"; discharge to facility possible." };
+  }
+  const bm = sums.bm, da = sums.da;
+  if(bm >= 18 && da >= 18){
+    if(bm >= 22 && da >= 22) return { band:"good", text:"Likely home; PT/OT consults usually not needed." };
+    return { band:"ok", text:"Likely home; therapy unlikely to change course." };
+  }
+  if(bm <= 17 && da <= 17) return { band:"low", text:"Consult PT and OT; discharge to facility likely." };
+  return { band:"low", text:"Consult "+(bm<=17 ? "PT" : "OT")+"; discharge to facility possible." };
+}
+
+function updateRecommendation(){
+  const box = document.getElementById("recBox");
+  const txt = document.getElementById("recText");
+  if(!box || !txt) return;
+  const rec = recommendation();
+  box.className = "rec " + rec.band;
+  txt.textContent = rec.text;
+}
+
+function buildRecommendation(){
+  const body = document.getElementById("threshBody");
+  if(!body) return;
+  body.innerHTML =
+    '<div class="rec pending" id="recBox" role="status" aria-live="polite">'+
+      '<div class="rec-label">Recommended action</div>'+
+      '<div class="rec-text" id="recText">Score all items to generate a recommendation.</div>'+
+    '</div>';
+  updateRecommendation();
+}
+
+// Band descriptor per form (no actions here — actions live in Recommended action).
 function interpText(sum, secId){
   if(secId === "bm"){
-    if(sum >= 23) return "\u226523 \u2014 highly independent; rehab consult often lower-value";
-    if(sum >= 19) return "19\u201322 \u2014 higher baseline mobility; PT/OT rarely change trajectory";
-    if(sum >= 16) return "16\u201318 \u2014 low mobility; PT/OT consult typically indicated";
-    if(sum >= 12) return "\u226415 \u2014 very low mobility; OT consult indicated; higher likelihood of post-acute care";
-    return "\u226411 \u2014 severe impairment; dependent range";
+    if(sum >= 22) return "22\u201324 \u2014 independent mobility";
+    if(sum >= 18) return "18\u201321 \u2014 mobile";
+    return "6\u201317 \u2014 reduced mobility";
   }
-  // Daily Activity descriptive bands (no published Daily-Activity cutoffs)
-  if(sum >= 23) return "\u226523 \u2014 largely independent in self-care";
-  if(sum >= 19) return "19\u201322 \u2014 mild impairment in self-care";
-  if(sum >= 16) return "16\u201318 \u2014 moderate impairment; assistance needed";
-  if(sum >= 12) return "12\u201315 \u2014 substantial dependence in self-care";
-  return "\u226411 \u2014 severe impairment; dependent range";
+  if(sum >= 22) return "22\u201324 \u2014 independent self-care";
+  if(sum >= 18) return "18\u201321 \u2014 manages most self-care";
+  return "6\u201317 \u2014 reduced self-care function";
 }
 
 function save(){
@@ -489,9 +544,10 @@ function copySummary(){
     });
     lines.push("  Raw score: " + (done===6 ? sum + "/24 \u2014 " + interpText(sum, secId) : "incomplete (" + done + "/6 items)"));
   });
-  if(activeIds().indexOf("bm") !== -1){
+  const rec = recommendation();
+  if(rec.band !== "pending"){
     lines.push("");
-    lines.push("Basic Mobility cutoffs: \u226418 low mobility (PT/OT indicated); \u226415 OT consult / post-acute care likely; \u226523 highly independent.");
+    lines.push("Recommended action: " + rec.text);
   }
   lines.push("");
   lines.push("Ref: Jette DU, et al. Phys Ther. 2014;94(3):379-391.");
